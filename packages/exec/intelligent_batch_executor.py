@@ -194,7 +194,73 @@ class IntelligentBatchExecutor:
             
         return orders
 
-    async def execute_burst_batch(self, orders: List[BatchOrder], 
+    async def execute_batch(self, orders: List[BatchOrder],
+                           connector=None) -> int:
+        """
+        主批量执行方法 - 世界级执行引擎入口
+
+        执行策略:
+        1. 小批量(<=10): 直接burst执行
+        2. 大批量(>10): 分批并发执行
+
+        Returns:
+            int: 成功执行的订单数
+        """
+        if not orders:
+            return 0
+
+        try:
+            total_executed = 0
+
+            # 根据订单数量选择执行策略
+            if len(orders) <= self.batch_size:
+                # 小批量直接执行
+                executed, failed = await self.execute_burst_batch(orders, connector)
+                total_executed = executed
+                logger.info("[IBE] 小批量执行完成: %d/%d 成功", executed, len(orders))
+
+            else:
+                # 大批量分批并发
+                batches = []
+                for i in range(0, len(orders), self.batch_size):
+                    batch = orders[i:i + self.batch_size]
+                    batches.append(batch)
+
+                logger.info("[IBE] 分批执行: %d个订单分为%d批", len(orders), len(batches))
+
+                # 并发执行所有批次
+                tasks = []
+                for batch in batches:
+                    task = asyncio.create_task(
+                        self.execute_burst_batch(batch, connector)
+                    )
+                    tasks.append(task)
+
+                # 等待所有批次完成
+                results = await asyncio.gather(*tasks, return_exceptions=True)
+
+                # 统计结果
+                for result in results:
+                    if isinstance(result, tuple):
+                        executed, _ = result
+                        total_executed += executed
+                    else:
+                        logger.error("[IBE] 批次执行异常: %s", result)
+
+                logger.info("[IBE] 批量执行完成: %d/%d 成功", total_executed, len(orders))
+
+            # 更新统计
+            self.stats['batch_submissions'] += 1
+            self.stats['successful_orders'] += total_executed
+            self.stats['failed_orders'] += (len(orders) - total_executed)
+
+            return total_executed
+
+        except Exception as e:
+            logger.error("[IBE] 批量执行失败: %s", e)
+            return 0
+
+    async def execute_burst_batch(self, orders: List[BatchOrder],
                                 connector=None) -> Tuple[int, int]:
         """
         突发批量执行：一次性批量生成5-20个小单
