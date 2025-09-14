@@ -235,7 +235,7 @@ PTP配置：
 
 ## 🔐 第0.1层：安全服务层（基础设施）
 
-### 0.1 SigningService（API签名服务）🆕
+### 0.1.1 SigningService（API签名服务）🆕
 **唯一职责**：集中化API密钥管理与签名服务
 ```python
 职责：
@@ -272,7 +272,7 @@ PTP配置：
 - ✅ 集中化密钥管理和轮转
 ```
 
-### 0.2 ChangeGuard（双人复核服务）🆕
+### 0.1.2 ChangeGuard（双人复核服务）🆕
 **唯一职责**：重大变更的双人复核与变更窗口管理
 ```python
 职责：
@@ -318,7 +318,7 @@ PTP配置：
 
 ## 🔄 第0.2层：容灾服务层（基础设施）
 
-### 0.3 LightweightFailoverManager（轻量级故障切换管理器）🆕
+### 0.2.1 LightweightFailoverManager（轻量级故障切换管理器）🆕
 **唯一职责**：单机房内的高可用和简单容灾
 ```python
 职责：
@@ -358,7 +358,7 @@ PTP配置：
 - restore_from_backup() → 状态恢复
 ```
 
-### 0.4 SessionStateManager（会话状态管理器）🆕
+### 0.2.2 SessionStateManager（会话状态管理器）🆕
 **唯一职责**：交易会话的状态保持和恢复
 ```python
 职责：
@@ -400,7 +400,7 @@ PTP配置：
 
 ## ⏰ 第0.3层：时间治理层（基础设施）
 
-### 0.5 TimeAuthority（统一时间权威）
+### 0.3.1 TimeAuthority（统一时间权威）
 **唯一职责**：提供纳秒级精确时间戳
 ```python
 职责：
@@ -422,7 +422,7 @@ PTP配置：
 - 成交回报: 微秒级（用于对账）
 ```
 
-### 0.6 LatencyTracker（延迟追踪器）
+### 0.3.2 LatencyTracker（延迟追踪器）
 **唯一职责**：全链路延迟监控
 ```python
 职责：
@@ -518,7 +518,7 @@ PTP配置：
 - isolate_bad_feed(feed_id)
 ```
 
-#### 1.0.4 Sequencer（序列化器）🆕
+#### 1.0.2 Sequencer（序列化器）🆕
 **唯一职责**：确保市场事件严格有序
 ```python
 职责：
@@ -532,7 +532,7 @@ PTP配置：
 - check_sequence_gap() → missing_sequences
 ```
 
-#### 1.0.5 GapFillEngine（缺口填充引擎）🆕
+#### 1.0.3 GapFillEngine（缺口填充引擎）🆕
 **唯一职责**：检测并填充数据缺失
 ```python
 职责：
@@ -547,7 +547,7 @@ PTP配置：
 - get_gap_statistics() → {total_gaps, filled_count}
 ```
 
-#### 1.0.6 StaleTick Gate（陈旧数据过滤门）🆕
+#### 1.0.4 StaleTick Gate（陈旧数据过滤门）🆕
 **唯一职责**：过滤陈旧无效数据
 ```python
 职责：
@@ -562,7 +562,7 @@ PTP配置：
 - filter_stale_ticks(ticks) → fresh_ticks
 ```
 
-#### 1.0.7 L3 BookBuilder（三级订单簿构建器）🆕
+#### 1.0.5 L3 BookBuilder（三级订单簿构建器）🆕
 **唯一职责**：构建完整订单簿模型
 ```python
 职责：
@@ -780,7 +780,7 @@ QuotePricingService → OrderOrchestrator → CentralizedRiskServer → PreTrade
 - get_stp_statistics() → 自成交统计
 ```
 
-#### 2.0.4 PreTradeGuardrail（撮合前合规栅格）🆕
+### 2.0.4 PreTradeGuardrail（撮合前合规栅格）🆕
 **唯一职责**：补充细化的撮合前风控检查
 ```python
 职责：
@@ -1137,7 +1137,7 @@ TTL影响因素：
 - get_response_latency() → 0.5ms
 ```
 
-### 4.4 APIRateLimiter（全局限流管理器）
+### 4.3 APIRateLimiter（全局限流管理器）
 **唯一职责**：API配额与限流控制
 ```python
 职责：
@@ -1175,7 +1175,7 @@ TTL影响因素：
 - emergency_throttle() → bool
 ```
 
-### 4.5 CoreTradeConnector (建议替代TurboConnector)
+### 4.4 CoreTradeConnector (建议替代TurboConnector)
 **唯一职责**：与交易所通信
 ```python
 职责：
@@ -1387,7 +1387,7 @@ ThreeDomainInventory ← 库存管理优化
 
 ### 两种撤单机制
 
-**1. 智能撤单（OrderOrchestrator决策 → IBE执行）**
+#### 1. 智能撤单（OrderOrchestrator决策 → IBE执行）
 ```python
 # OrderOrchestrator的QPEWithFallback组件分析队列位置
 open_orders = user_data_stream.get_open_orders()
@@ -1407,7 +1407,7 @@ if cancel_hints:
     result = await ibe.cancel_batch(order_ids)  # 并发撤销
 ```
 
-**2. 动态TTL撤单（IBE自适应管理）**
+#### 2. 动态TTL撤单（IBE自适应管理）
 ```python
 # IBE内部维护动态TTL
 class IBE:
