@@ -7,50 +7,54 @@
 ```
 doge-mm-enterprise/
 ├── engine/                      # 核心引擎
+│   ├── engine_core/
+│   │   └── orchestrator.py      # 极薄主循环 (20行)
 │   ├── domains/                 # 8个域管理器
-│   │   ├── reference/          # 主数据与时间管理
-│   │   ├── market_data/        # 市场数据域
-│   │   ├── account_state/      # 账户状态域
-│   │   ├── risk/               # 风控域
-│   │   ├── pricing/            # 定价域
-│   │   ├── execution/          # 执行域
-│   │   ├── hedging/            # 对冲域
-│   │   └── ops/                # 运维质量域
-│   ├── engine_core/            # 极薄主循环（20行）
-│   ├── dto/                    # 数据传输对象
-│   ├── infra/                  # 基础设施
-│   ├── events/                 # 事件架构
-│   │   ├── bus/               # 事件总线实现
-│   │   ├── schemas/           # 事件模式定义
-│   │   └── replay/            # 事件重放引擎
-│   ├── adapters/              # 交易所适配器
-│   │   ├── binance/          # 币安实现
-│   │   ├── okx/              # OKX实现
-│   │   └── common/           # 通用接口
-│   └── monitoring/            # 监控可观测性
-│       ├── metrics/          # Prometheus指标
-│       ├── tracing/          # 分布式追踪
-│       └── alerting/         # 告警规则
-├── tests/                     # 测试套件
-│   ├── unit/                 # 单元测试
-│   ├── integration/          # 集成测试
-│   ├── e2e/                  # 端到端测试
-│   ├── stress/               # 压力测试
-│   └── chaos/                # 混沌工程
-├── configs/                   # 配置管理
-│   ├── dev/                  # 开发环境
-│   ├── staging/              # 预发环境
-│   ├── prod/                 # 生产环境
-│   └── markets/              # 市场配置
-├── scripts/                   # 工具脚本
-│   ├── deploy/               # 部署脚本
-│   ├── backtest/             # 回测工具
-│   ├── benchmark/            # 性能基准
-│   └── replay/               # 事件重放
-└── docs/                      # 文档
-    ├── architecture/          # 架构文档
-    ├── api/                   # API文档
-    └── operations/            # 运维手册
+│   │   ├── reference/           # 品种主数据域
+│   │   ├── market_data/         # 市场数据域
+│   │   ├── account_state/       # 账户状态域
+│   │   ├── risk/                # 风险管理域
+│   │   ├── pricing/             # 定价域
+│   │   ├── execution/           # 执行域
+│   │   ├── hedging/             # 对冲域
+│   │   └── ops/                 # 运维质量域
+│   └── dto/
+│       └── core_dtos.py         # 核心数据传输对象
+│
+├── packages/                    # 功能包
+│   ├── connectors/              # 连接器
+│   │   ├── core_trade_connector.py  # 精简交易连接器(5个方法)
+│   │   ├── user_stream.py          # 用户数据流
+│   │   └── perp_binance.py         # 永续合约连接
+│   ├── risk/                    # 风控组件
+│   │   ├── pessimistic_reservation_model.py
+│   │   ├── institutional_event_ledger.py
+│   │   └── budget_governor.py
+│   ├── exec/                    # 执行组件
+│   │   ├── intelligent_batch_executor.py  # IBE批量执行
+│   │   ├── millisecond_response_system.py # 毫秒响应
+│   │   └── three_domain_inventory_system.py
+│   ├── hedge/                   # 对冲组件
+│   │   ├── delta_bus.py        # Delta事件总线
+│   │   ├── position_book.py    # 仓位账本
+│   │   └── hedge_service.py    # 对冲主控
+│   └── utils/                   # 工具组件
+│       ├── dual_active_market_data.py
+│       └── observability_dashboard.py
+│
+├── project_architecture_docs/   # 架构文档
+│   ├── 01_MAIN_ARCHITECTURE_V10.md
+│   ├── 02_CONCISE_ARCHITECTURE.md
+│   ├── 03_DOMAIN_MANAGERS.md
+│   ├── 04_PORTS_AND_DTOS.md
+│   ├── 05_DEVELOP_PROGRESS_PLAN.md
+│   ├── 06_DOMAIN_MANAGER_MAPPING.md
+│   └── 07_DIRECTORY_STRUCTURE.md
+│
+├── configs/                     # 配置文件
+├── scripts/                     # 脚本工具
+├── tests/                       # 测试套件
+└── docs/                        # 文档
 ```
 
 ## 🚀 快速开始
@@ -160,10 +164,10 @@ curl http://localhost:8080/health
 
 ## 📚 相关文档
 
-- [架构设计](docs/ARCHITECTURE.md)
-- [域管理器](docs/DOMAIN_MANAGERS.md)
-- [接口契约](docs/PORTS.md)
-- [运维手册](docs/OPERATIONS.md)
+- [完整架构文档](project_architecture_docs/README.md)
+- [主架构设计](project_architecture_docs/01_MAIN_ARCHITECTURE_V10.md)
+- [域管理器](project_architecture_docs/03_DOMAIN_MANAGERS.md)
+- [开发计划](project_architecture_docs/05_DEVELOP_PROGRESS_PLAN.md)
 
 ## 📄 License
 
