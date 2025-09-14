@@ -27,7 +27,7 @@
    - engine_core/orchestrator.py
    - 基础事件驱动框架
 
-2. 基础连接器
+2. 基础连接器 [4.5]
    - connectors/core_trade_connector.py (替代TurboConnector)
    - 心跳维持机制
 
@@ -36,10 +36,10 @@
    - MarketSnapshot, PlannedOrder, ExecutionReport
 
 4. 基础设施层
-   - infrastructure/network_baseline.yaml（网络优化）
-   - infrastructure/time_authority.py（时间同步）
-   - infrastructure/latency_tracker.py（延迟监控）
-   - infrastructure/instrument_master.py（品种主数据）
+   - [-1.1] NetworkHostTuningBaseline（网络优化）
+   - [0.5] TimeAuthority（时间同步）
+   - [0.6] LatencyTracker（延迟监控）
+   - [0.0] InstrumentMaster（品种主数据）
 ```
 
 ### 验证点
@@ -63,18 +63,22 @@ python3 -m engine_core.orchestrator --test-connectivity
 ### 核心组件
 ```
 1. 市场数据主系统
-   - services/dual_active_market_data.py（双活市场数据）
-   - services/multi_source_governance.py（多源治理）
-   - L2深度聚合器
-   - 数据质量监控
+   - [1.1] DualActiveMarketData（双活市场数据）
+   - [1.0.1] MultiSourceDataGovernance（多源治理）
+   - [1.0.2] IncrementalStreamProcessor（增量流处理）
+   - [1.0.3] FeedArbiter（数据源仲裁）
+   - [1.0.4] Sequencer（序列化器）
+   - [1.0.5] GapFillEngine（缺口填充）
+   - [1.0.6] StaleTick Gate（陈旧数据过滤）
+   - [1.0.7] L3 BookBuilder（L3订单簿构建）
 
 2. 账户数据系统
-   - services/user_data_stream.py（用户数据流）
-   - services/drop_copy_ingestor.py（独立抄送）
-   - services/state_reconciler.py（状态和解）
+   - [1.2] UserDataStream（用户数据流）
+   - [1.3] DropCopyIngestor（独立抄送）
+   - [1.4] StateReconciler（状态和解）
 
 3. PTP时间同步服务
-   - infrastructure/ptp_sync_service.py
+   - [-1.2] PTSyncService（精密时间同步）
    - 硬件时间戳支持
 ```
 
@@ -104,12 +108,12 @@ python3 -m engine_core.orchestrator --phase=S1 --symbol=DOGEUSDT
    - 库存偏移调整
 
 2. QuotePricingService
-   - services/quote_pricing.py
+   - [3.2] QuotePricingService（智能定价引擎）
    - 多层报价生成
    - 价差优化器
 
-3. 签名服务 [补充]
-   - security/signing_service.py
+3. 签名服务
+   - [0.1] SigningService（API签名服务）
    - 订单签名验证
 ```
 
@@ -134,21 +138,21 @@ python3 -m engine_core.orchestrator --phase=S2 --strategy=qpe_mm
 ### 核心组件
 ```
 1. 执行引擎核心
-   - services/ibe.py（智能批量执行器）
+   - [4.1] IBE（智能批量执行器）
    - 批量下单优化
    - 动态TTL管理
    - 智能撤单逻辑
 
 2. OrderOrchestrator
-   - services/order_orchestrator.py
+   - [3.3] OrderOrchestrator（订单协调引擎）
    - 订单生命周期管理
    - QPE队列估算
    - Replace优化器
 
 3. 执行辅助系统
-   - services/millisecond_response.py（毫秒响应）
-   - services/api_rate_limiter.py（限流管理）
-   - services/emergency_kill_switch.py（紧急停止）
+   - [4.3] MillisecondResponseSystem（毫秒响应）
+   - [4.4] APIRateLimiter（限流管理）
+   - [4.2] EmergencyKillSwitch（紧急停止）
 ```
 
 ### 验证点
@@ -172,27 +176,27 @@ python3 -m engine_core.orchestrator --phase=S3 --enable-batch
 ### 核心组件
 ```
 1. 集中式风控服务器
-   - services/centralized_risk_server.py（独立进程）
+   - [2.0.1] CentralizedRiskServer（独立进程）
    - 四维限额管理
    - STP自成交防控
-   - services/token_bucket_limiter.py（令牌桶限流）
-   - services/self_trade_prevention.py（自成交防控）
-   - services/pretrade_guardrail.py（前置合规栅格）
+   - [2.0.2] TokenBucketLimiter（令牌桶限流）
+   - [2.0.3] SelfTradePreventionEngine（自成交防控）
+   - [2.0.4] PreTradeGuardrail（前置合规栅格）
 
 2. 资金管理系统
-   - services/pessimistic_reservation.py（悲观预扣）
-   - services/ssot_closed_loop.py（SSOT闭环）
+   - [2.1] PessimisticReservationModel（悲观预扣）
+   - [2.2] SSOTReservationClosedLoop（SSOT闭环）
    - 资源预留机制
    - 并发控制器
 
 3. 决策层系统
-   - services/liquidity_envelope.py（流动性包络）
-   - services/three_domain_inventory.py（三域库存）
+   - [3.1] LiquidityEnvelope（流动性包络）
+   - [3.4] ThreeDomainInventorySystem（三域库存）
    - 资金分配策略
    - 动态调整机制
 
 4. 事件记录
-   - services/institutional_event_ledger.py（审计账本）
+   - [2.3] InstitutionalEventLedger（审计账本）
 ```
 
 ### 验证点
@@ -216,14 +220,14 @@ python3 -m engine_core.orchestrator --phase=S4 --risk-check=strict
 ### 核心组件
 ```
 1. 对冲引擎核心组件
-   - services/delta_bus.py（Delta事件总线）
-   - services/position_book.py（仓位账本）
-   - services/mode_controller.py（模式控制器）
-   - services/passive_planner.py（被动腿计划）
-   - services/active_planner.py（主动腿计划）
-   - services/hedge_router.py（对冲路由器）
-   - services/hedge_governor.py（对冲治理器）
-   - services/hedge_service.py（对冲主控）
+   - [7.1] DeltaBus（Delta事件总线）
+   - [7.2] PositionBook（仓位账本）
+   - [7.3] ModeController（模式控制器）
+   - [7.4] PassivePlanner（被动腿计划器）
+   - [7.5] ActivePlanner（主动腿计划器）
+   - [7.6] HedgeRouter（对冲路由器）
+   - [7.7] HedgeGovernor（对冲治理器）
+   - [7.8] HedgeService（对冲服务主控）
 
 2. 合约连接器
    - connectors/futures_connector.py
@@ -231,8 +235,7 @@ python3 -m engine_core.orchestrator --phase=S4 --risk-check=strict
    - 仓位同步器
 
 3. Drop-Copy验证
-   - services/drop_copy.py
-   - 独立对账系统
+   - [1.3] DropCopyIngestor（独立对账系统）
 ```
 
 ### 验证点
@@ -256,21 +259,21 @@ python3 -m engine_core.orchestrator --phase=S5 --enable-hedge
 ### 核心组件
 ```
 1. 毒性监控系统
-   - services/toxicity_monitor.py（VPIN毒性监控）
+   - [5.1] ToxicityMonitor（VPIN毒性监控）
    - 订单流毒性检测
    - 逆向选择量化
 
 2. 质量分析服务
-   - services/quote_quality_service.py
+   - [5.2] QuoteQualityService（报价质量服务）
    - Microprice偏差分析
    - Fair-Value模型
    - Cancel-to-Fill优化
 
 3. 监控仪表板
-   - services/market_quality_dashboard.py
+   - [5.3] MarketQualityDashboard（做市质量仪表板）
    - 实时质量面板
    - 策略效果分析
-   - services/observability_dashboard.py
+   - [6.1] ObservabilityDashboard（可观测性仪表板）
    - 系统健康监控
 ```
 
@@ -295,30 +298,30 @@ python3 -m engine_core.orchestrator --phase=S6 --enable-monitoring
 ### 核心组件
 ```
 1. 参数管理系统
-   - services/parameter_server.py
+   - [8.1] ParameterServer（参数服务器）
    - 热更新支持
    - A/B测试分配
 
 2. 影子交易系统
-   - services/shadow_trading.py
+   - [8.4] ShadowTrading（影子交易）
    - 零风险验证
    - 虚拟PnL追踪
 
 3. 金丝雀部署
-   - services/canary_deployment.py
+   - [8.5] CanaryDeployment（金丝雀部署）
    - 渐进式放量
    - 自动回滚
 
 4. 事件溯源系统
-   - services/event_sourcing_engine.py
+   - [8.6] EventSourcingEngine（事件溯源引擎）
    - 状态重建
    - 时间旅行调试
-   - services/replay_simulator.py
+   - [8.3] ReplaySimulator（重放仿真器）
    - 历史重放
    - 回测验证
 
 5. 特征一致性
-   - services/feature_consistency.py
+   - [8.2] FeatureConsistency（特征一致性）
    - 离线在线校验
    - 特征漂移检测
 ```
@@ -344,23 +347,23 @@ python3 -m engine_core.orchestrator --phase=S7 --enable-production
 ### 核心组件
 ```
 1. 安全服务层
-   - services/change_guard.py（双人复核）
+   - [0.2] ChangeGuard（双人复核服务）
    - 变更审批流程
    - 冻结窗口管理
 
 2. 容灾管理
-   - services/failover_manager.py（故障切换）
-   - services/session_state_manager.py（会话恢复）
+   - [0.3] LightweightFailoverManager（故障切换管理）
+   - [0.4] SessionStateManager（会话状态管理）
    - 双机热备
    - 状态快照
 
-3. 高级数据处理
-   - services/incremental_stream_processor.py
-   - services/feed_arbiter.py
-   - services/sequencer.py
-   - services/gap_fill_engine.py
-   - services/stale_tick_gate.py
-   - services/l3_book_builder.py
+3. 高级数据处理（已在S1实现）
+   - [1.0.2] IncrementalStreamProcessor
+   - [1.0.3] FeedArbiter
+   - [1.0.4] Sequencer
+   - [1.0.5] GapFillEngine
+   - [1.0.6] StaleTick Gate
+   - [1.0.7] L3 BookBuilder
 ```
 
 ### 验证点
